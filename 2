@@ -1,0 +1,68 @@
+package com.example.myapplication;
+
+import android.database.Cursor;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+    private EditText etName, etPrice, etQuantity;
+    private Button btnAddProduct, btnViewProducts;
+    private DBHelper dbHelper;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        etName = findViewById(R.id.et_name);
+        etPrice = findViewById(R.id.et_price);
+        etQuantity = findViewById(R.id.et_quantity);
+        btnAddProduct = findViewById(R.id.btn_add_product);
+        btnViewProducts = findViewById(R.id.btn_view_products);
+
+        dbHelper = new DBHelper(this);
+
+        btnAddProduct.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = etName.getText().toString();
+                double price = Double.parseDouble(etPrice.getText().toString());
+                int quantity = Integer.parseInt(etQuantity.getText().toString());
+
+                if (dbHelper.addProduct(name, price, quantity)) {
+                    Toast.makeText(MainActivity.this, "Товар добавлен", Toast.LENGTH_SHORT).show();
+                    etName.setText("");
+                    etPrice.setText("");
+                    etQuantity.setText("");
+                } else {
+                    Toast.makeText(MainActivity.this, "Ошибка добавления товара", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        btnViewProducts.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Cursor cursor = dbHelper.getAllProducts();
+                if (((Cursor) cursor).getCount() == 0) {
+                    Toast.makeText(MainActivity.this, "Товары не найдены", Toast.LENGTH_SHORT).show();
+                } else {
+                    StringBuilder sb = new StringBuilder();
+                    while (cursor.moveToNext()) {
+                        sb.append("ID: ").append(cursor.getInt(0)).append("\n");
+                        sb.append("Name: ").append(cursor.getString(1)).append("\n");
+                        sb.append("Price: ").append(cursor.getDouble(2)).append("\n");
+                        sb.append("Quantity: ").append(cursor.getInt(3)).append("\n");
+                        sb.append("Time: ").append(cursor.getString(4)).append("\n\n");
+                    }
+                    Toast.makeText(MainActivity.this, sb.toString(), Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+}
